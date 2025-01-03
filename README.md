@@ -106,7 +106,11 @@ This is a Laravel-based application for monitoring servers' health. It supports 
      - `GET /servers/{id}/status/{timestamp}`: Check server status at a given time.
 
    Use Postman or any API client to interact with the endpoints.
+   
+3. **Run scheduler**
+   - Run `php artisan schedule:run` to activate cron job
 
+   
 ---
 
 ## Deployment
