@@ -14,16 +14,44 @@ class ServerController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'url' => 'required',
-            'protocol' => 'required|in:http,https,ftp,ssh',
-            'ftp_username' => 'required',
-            'ftp_password' => 'required',
+        // Preprocess the URL to add a default scheme if missing
+        $request->merge([
+            'url' => $this->addDefaultScheme($request->input('url')),
         ]);
 
-        return Server::create($validated);
+        // Validate the request data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'url' => 'required|url|max:2048',
+            'protocol' => 'required|string|in:http,https,ftp,ssh',
+            'ftp_username' => 'nullable|required_if:protocol,ftp|string|max:255',
+            'ftp_password' => 'nullable|required_if:protocol,ftp|string|max:255',
+        ], [
+            'name.required' => 'The server name is required.',
+            'url.required' => 'The server URL is required.',
+            'url.url' => 'Please provide a valid URL.',
+            'protocol.required' => 'The server protocol is required.',
+            'protocol.in' => 'The protocol must be one of the following: http, https, ftp, ssh.',
+            'ftp_username.required_if' => 'FTP username is required when protocol is FTP.',
+            'ftp_password.required_if' => 'FTP password is required when protocol is FTP.',
+        ]);
+
+        // Store the server data
+        $server = Server::create($validated);
+
+        return response()->json($server, 201);
     }
+
+    private function addDefaultScheme($url)
+    {
+        if (!preg_match('/^https?:\/\//', $url)) {
+            // Prepend 'http://' if no scheme is present
+            $url = 'http://' . $url;
+        }
+
+        return $url;
+    }
+
 
     public function update(Request $request, Server $server)
     {

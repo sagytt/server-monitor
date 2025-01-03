@@ -55,7 +55,6 @@ class MonitorServers implements ShouldQueue
             if ($unhealthy && !$server->notified_unhealthy) {
                 // Send notification
                 $adminEmail = config('mail.smtp'); // Pre-defined email in config
-                print_r('sending mail');
                 Notification::route('mail', $adminEmail)
                     ->notify(new ServerUnhealthyNotification($server));
 
